@@ -49,7 +49,7 @@ const RegisterPage = () => {
     try {
       // Simulation d'une requête API pour l'inscription
       const response = await fetch(
-        'https://adlambackend-production.up.railway.app/api/auth/register',
+        'https://adlambackend-production-551c.up.railway.app/api/auth/register',
         {
           method: 'POST',
           headers: {

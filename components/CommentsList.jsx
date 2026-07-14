@@ -51,7 +51,7 @@ const CommentItem = ({
 
     try {
       const response = await fetch(
-        `https://adlambackend-production.up.railway.app/api/comments/${comment.id}`,
+        `https://adlambackend-production-551c.up.railway.app/api/comments/${comment.id}`,
         {
           method: 'DELETE',
           headers: {

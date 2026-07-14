@@ -24,7 +24,7 @@ const ForgotPassword = () => {
     try {
       // Remplace l'URL par ton point d'entrée API réel
       const response = await axios.post(
-        `https://adlambackend-production.up.railway.app/api/auth/forgot-password`,
+        `https://adlambackend-production-551c.up.railway.app/api/auth/forgot-password`,
         { email },
       )
       setMessage(

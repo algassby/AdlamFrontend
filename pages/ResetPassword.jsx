@@ -18,7 +18,7 @@ const ResetPassword = () => {
     try {
       // On envoie le nouveau mot de passe au backend
       const response = await axios.post(
-        `https://adlambackend-production.up.railway.app/api/auth/reset-password/${token}`,
+        `https://adlambackend-production-551c.up.railway.app/api/auth/reset-password/${token}`,
         {
           password: password,
         },

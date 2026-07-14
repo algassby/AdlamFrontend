@@ -28,7 +28,7 @@ const UserList = () => {
 
     try {
       const response = await fetch(
-        'https://adlambackend-production.up.railway.app/api/users',
+        'https://adlambackend-production-551c.up.railway.app/api/users',
         {
           method: 'GET',
           headers: {
@@ -72,7 +72,7 @@ const UserList = () => {
   const handleRoleChange = async (userId, newRole) => {
     try {
       const response = await fetch(
-        `https://adlambackend-production.up.railway.app/api/users/${userId}/role`,
+        `https://adlambackend-production-551c.up.railway.app/api/users/${userId}/role`,
         {
           method: 'PATCH',
           headers: {
@@ -122,7 +122,7 @@ const UserList = () => {
     ) {
       try {
         const response = await fetch(
-          `https://adlambackend-production.up.railway.app/api/users/${userId}`,
+          `https://adlambackend-production-551c.up.railway.app/api/users/${userId}`,
           {
             method: 'DELETE',
             headers: {

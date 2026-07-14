@@ -59,7 +59,7 @@ const AllArticlesPage = () => {
     const fetchArticles = async () => {
       try {
         const response = await fetch(
-          'https://adlambackend-production.up.railway.app/api/articles'
+          'https://adlambackend-production-551c.up.railway.app/api/articles'
         )
         if (!response.ok) {
           throw new Error('Erreur de réseau ou de serveur.')

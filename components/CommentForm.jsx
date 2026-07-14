@@ -36,7 +36,7 @@ const CommentForm = ({ articleId, onCommentAdded }) => {
 
     try {
       const response = await fetch(
-        `https://adlambackend-production.up.railway.app/api/articles/${articleId}/comments`,
+        `https://adlambackend-production-551c.up.railway.app/api/articles/${articleId}/comments`,
         {
           method: 'POST',
           headers: {

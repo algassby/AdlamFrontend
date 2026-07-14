@@ -54,7 +54,7 @@ const UserProfile = () => {
     console.log('Token being sent:', token)
     try {
       const response = await fetch(
-        'https://adlambackend-production.up.railway.app/api/users/profile',
+        'https://adlambackend-production-551c.up.railway.app/api/users/profile',
         {
           method: 'PUT',
           headers: {

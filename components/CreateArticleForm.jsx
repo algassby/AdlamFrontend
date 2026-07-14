@@ -189,7 +189,7 @@ const RichTextEditor = ({ content, onUpdate, label, isEditMode = false }) => {
         editor.chain().focus().setImage({ src: loadingImg }).run()
 
         const uploadResponse = await fetch(
-          'https://adlambackend-production.up.railway.app/api/upload',
+          'https://adlambackend-production-551c.up.railway.app/api/upload',
           {
             method: 'POST',
             headers: { Authorization: `Bearer ${token}` },
@@ -295,7 +295,7 @@ const CreateArticleForm = ({ article }) => {
         const formData = new FormData()
         formData.append('image', coverImage)
         const uploadResponse = await fetch(
-          'https://adlambackend-production.up.railway.app/api/upload',
+          'https://adlambackend-production-551c.up.railway.app/api/upload',
           {
             method: 'POST',
             headers: { Authorization: `Bearer ${token}` },
@@ -319,8 +319,8 @@ const CreateArticleForm = ({ article }) => {
       }
 
       const url = isEditMode
-        ? `https://adlambackend-production.up.railway.app/api/articles/${article.id}`
-        : 'https://adlambackend-production.up.railway.app/api/articles'
+        ? `https://adlambackend-production-551c.up.railway.app/api/articles/${article.id}`
+        : 'https://adlambackend-production-551c.up.railway.app/api/articles'
 
       const method = isEditMode ? 'PUT' : 'POST'
 

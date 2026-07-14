@@ -11,7 +11,7 @@ import React, {
 // Création des Contextes
 const AuthContext = createContext(null)
 const LanguageContext = createContext(null)
-const API_BASE_URL = 'https://adlambackend-production.up.railway.app/api'
+const API_BASE_URL = 'https://adlambackend-production-551c.up.railway.app/api'
 
 // Définition des traductions (MODIFIÉ : ajout de searchPlaceholder)
 const translations = {
@@ -126,7 +126,7 @@ const AuthProvider = ({ children }) => {
     setError(null)
     try {
       const response = await fetch(
-        'https://adlambackend-production.up.railway.app/api/auth/login',
+        'https://adlambackend-production-551c.up.railway.app/api/auth/login',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

@@ -27,7 +27,7 @@ const ArticlePage = () => {
     const fetchArticleAndComments = async () => {
       try {
         const articleResponse = await fetch(
-          `https://adlambackend-production.up.railway.app/api/articles/${id}`
+          `https://adlambackend-production-551c.up.railway.app/api/articles/${id}`
         )
         if (!articleResponse.ok) {
           throw new Error(
@@ -38,7 +38,7 @@ const ArticlePage = () => {
         setArticle(articleData)
 
         const commentsResponse = await fetch(
-          `https://adlambackend-production.up.railway.app/api/articles/${id}/comments`
+          `https://adlambackend-production-551c.up.railway.app/api/articles/${id}/comments`
         )
         if (!commentsResponse.ok) {
           console.error('Erreur lors de la récupération des commentaires.')
