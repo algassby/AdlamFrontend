@@ -20,5 +20,6 @@ jobs:
           server: 92.113.28.14
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
           local-dir: ./dist/
           server-dir: /public_html/
