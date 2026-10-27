@@ -3,15 +3,15 @@ import { MessageCircle, Trash } from 'lucide-react'
 import { useAuth } from '../src/providers/AuthProvider'
 import { useLanguage } from '../src/providers/LanguageProvider'
 
-// Fonction utilitaire pour obtenir la locale Adlam
+// Fonction utilitaire pour obtenir la locale Adlam / multilingue
 const getLocale = (lang) => {
-  if (lang === 'adlam') return 'ff-Adlm' // Locale Adlam/Pulaar
+  if (lang === 'adlam') return 'ff-Adlm'
   if (lang === 'en') return 'en-US'
   return 'fr-FR'
 }
 
 // =========================================================================
-// Composant pour afficher un seul commentaire (Maintenant avec suppression Admin)
+// Composant pour afficher un seul commentaire (avec suppression Admin)
 // =========================================================================
 const CommentItem = ({
   comment,
@@ -20,14 +20,13 @@ const CommentItem = ({
   selectedLanguage,
   onCommentDeleted,
 }) => {
-  // Récupère l'utilisateur connecté et le token
-  const { user, token } = useAuth() // Vérifie si l'utilisateur est administrateur (role === 'admin')
-
+  const { user, token } = useAuth()
   const isAdmin = user && user.role === 'admin'
+  const currentLangCode = selectedLanguage === 'adlam' ? 'ff-Adlm' : selectedLanguage
 
-  // Formatage de la date dynamique
+  // Formatage dynamique de la date selon la langue choisie
   const formattedDate = new Date(comment.createdAt).toLocaleDateString(
-    getLocale(selectedLanguage), // Utilisation de la locale dynamique
+    getLocale(selectedLanguage),
     {
       year: 'numeric',
       month: 'long',
@@ -41,7 +40,7 @@ const CommentItem = ({
     if (
       !window.confirm(
         t(
-          'confirmDelete', // Clé traduite
+          'confirmDelete',
           'Êtes-vous sûr de vouloir supprimer ce commentaire ?'
         )
       )
@@ -66,69 +65,63 @@ const CommentItem = ({
       } else {
         const data = await response.json()
         alert(
-          t('deleteError', 'Erreur lors de la suppression:') +
+          t('deleteError', 'Erreur lors de la suppression :') +
             ' ' +
             (data.error || data.message || response.statusText)
         )
       }
     } catch (error) {
-      console.error('Erreur de connexion DELETE:', error)
+      console.error('Erreur de connexion DELETE :', error)
       alert(
         t(
-          'deleteConnectionError', // Clé traduite
+          'deleteConnectionError',
           'Erreur de connexion au serveur lors de la suppression.'
         )
       )
     }
   }
 
+  const authorName = comment.author?.name || 'Anonyme'
+  const authorInitial = authorName.charAt(0).toUpperCase()
+
   return (
     <div
-      className='flex items-start space-x-4 p-4 border-b border-gray-100 last:border-b-0' // Ajustement de la disposition pour RTL (Adlam)
-      style={{
-        direction: textDirection,
-        flexDirection: textDirection === 'rtl' ? 'row-reverse' : 'row',
-      }}
+      className='flex items-start gap-4 p-4 border-b border-gray-100 last:border-b-0'
+      style={{ direction: textDirection }}
+      lang={currentLangCode}
     >
-      {/* Icône / Avatar de l'utilisateur */}{' '}
-      <div
-        className={`flex-shrink-0 w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-700 font-bold ${
-          textDirection === 'rtl' ? 'ml-4' : 'mr-4'
-        }`}
-      >
-        {comment.author.name.charAt(0).toUpperCase()}{' '}
-      </div>{' '}
+      {/* Icône / Avatar de l'utilisateur */}
+      <div className='flex-shrink-0 w-10 h-10 bg-[#2c3159] text-white rounded-full flex items-center justify-center font-bold text-sm shadow-sm'>
+        {authorInitial}
+      </div>
+
+      {/* Contenu du commentaire */}
       <div className='flex-1 min-w-0'>
-        {' '}
-        <div className='flex justify-between items-center'>
-          {' '}
+        <div className='flex justify-between items-center gap-2 mb-1'>
           <p className='text-sm font-semibold text-gray-900 truncate'>
-            {comment.author.name}{' '}
-          </p>{' '}
-          <div className='flex items-center space-x-2'>
-            {/* Date */}{' '}
+            {authorName}
+          </p>
+          <div className='flex items-center gap-2'>
             <p className='text-xs text-gray-500 flex-shrink-0'>
-              {formattedDate}{' '}
+              {formattedDate}
             </p>
-            {/* Bouton de suppression conditionnel pour l'Admin */}{' '}
+            {/* Bouton de suppression réservé aux administrateurs */}
             {isAdmin && (
               <button
                 onClick={handleDelete}
-                className='text-red-500 hover:text-red-700 transition duration-150 p-1 rounded-full'
-                title={t(
-                  'deleteButtonTitle', // Clé traduite
-                  'Supprimer ce commentaire'
-                )}
+                className='text-red-500 hover:text-red-700 transition duration-150 p-1 rounded-full hover:bg-red-50'
+                title={t('deleteButtonTitle', 'Supprimer ce commentaire')}
+                aria-label={t('deleteButtonTitle', 'Supprimer ce commentaire')}
               >
-                <Trash size={14} />{' '}
+                <Trash size={14} />
               </button>
-            )}{' '}
-          </div>{' '}
-        </div>{' '}
-        <p className='mt-1 text-gray-700 whitespace-pre-wrap'>
-          {comment.content}{' '}
-        </p>{' '}
-      </div>{' '}
+            )}
+          </div>
+        </div>
+        <p className='text-gray-700 text-sm leading-relaxed whitespace-pre-wrap'>
+          {comment.content}
+        </p>
+      </div>
     </div>
   )
 }
@@ -137,11 +130,11 @@ const CommentItem = ({
 // Composant principal pour la liste des commentaires
 // =========================================================================
 const CommentsList = ({ comments, setComments }) => {
-  // Récupération des données multilingues
   const { textDirection, translations, selectedLanguage } = useLanguage()
-  const commentsLang = translations[selectedLanguage].commentsList || {} // Gère la fonction de traduction locale (adaptée pour l'objet commentsList)
+  const commentsLang = translations[selectedLanguage]?.commentsList || {}
+  const currentLangCode = selectedLanguage === 'adlam' ? 'ff-Adlm' : selectedLanguage
 
-  const t = (key, fallback) => commentsLang[key] || fallback // Gère la mise à jour de la liste après la suppression
+  const t = (key, fallback) => commentsLang[key] || fallback
 
   const handleCommentDeleted = (deletedCommentId) => {
     if (setComments) {
@@ -154,33 +147,34 @@ const CommentsList = ({ comments, setComments }) => {
   if (!comments || comments.length === 0) {
     return (
       <div
-        className='p-6 bg-white rounded-lg shadow-md text-center text-gray-500'
+        className='p-6 bg-white rounded-lg shadow-sm border border-gray-100 text-center text-gray-500 mt-6'
         style={{ direction: textDirection }}
+        lang={currentLangCode}
       >
-        <MessageCircle className='mx-auto mb-3' size={32} />{' '}
-        <p className='text-lg'>
-          {t('none', 'Soyez le premier à commenter cet article !')}{' '}
-        </p>{' '}
+        <MessageCircle className='mx-auto mb-3 text-gray-400' size={32} />
+        <p className='text-base font-medium'>
+          {t('none', 'Soyez le premier à commenter cet article !')}
+        </p>
       </div>
     )
   }
 
   return (
     <div
-      className='bg-white rounded-lg shadow-md divide-y divide-gray-100 mt-8'
+      className='bg-white rounded-lg shadow-sm border border-gray-100 divide-y divide-gray-100 mt-6'
       style={{ direction: textDirection }}
+      lang={currentLangCode}
     >
-      {' '}
       {comments.map((comment) => (
         <CommentItem
           key={comment.id}
           comment={comment}
           textDirection={textDirection}
-          t={t} // Passage de la fonction de traduction
-          selectedLanguage={selectedLanguage} // Passage de la langue pour le formatage de date
+          t={t}
+          selectedLanguage={selectedLanguage}
           onCommentDeleted={handleCommentDeleted}
         />
-      ))}{' '}
+      ))}
     </div>
   )
 }

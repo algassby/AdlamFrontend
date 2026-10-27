@@ -1,75 +1,99 @@
 /* src/components/Header/Header.css */
 
 .header {
-  font-family: sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
+  width: 100%;
 }
 
 .top-bar {
-  background-color: #fff;
-  padding: 10px 0;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: #f9fafb;
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .top-bar-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 16px;
 }
 
 .logo-section {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .logo-name {
+  font-family: 'Kigelia Adlam', sans-serif;
   font-weight: bold;
+  font-size: 1.25rem;
+  color: #2c3159;
 }
 
 .logo-image {
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
+  object-fit: cover;
 }
 
 .contact-info {
   display: flex;
   align-items: center;
   gap: 20px;
-  font-size: 0.8rem;
-  color: #555;
+  font-size: 0.875rem;
+  color: #4b5563;
 }
 
 .info-item {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
 .info-item .icon {
-  font-size: 1.2rem;
-  color: #555;
+  font-size: 1.1rem;
+  color: #2c3159;
+}
+
+.social-icons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .social-icons a {
-  font-size: 1.2rem;
-  margin-left: 10px;
+  font-size: 1.1rem;
+  color: #4b5563;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
+.social-icons a:hover {
+  transform: translateY(-1px);
+}
+
+/* Barre de Navigation Principale avec couleur de marque #2c3159 */
 .nav-adlam {
-  background-color: #2c3e50;
+  background-color: #2c3159;
   display: flex;
   justify-content: center;
-  padding: 15px 0;
+  align-items: center;
+  padding: 14px 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .nav-link-adlam {
-  color: #fff;
+  color: #ffffff;
   text-decoration: none;
-  font-size: 1rem;
-  padding: 0 20px;
-  font-family: 'Adlam', sans-serif;
+  font-size: 1.05rem;
+  padding: 0 16px;
+  font-family: 'Kigelia Adlam', sans-serif;
+  transition: color 0.2s ease;
+}
+
+.nav-link-adlam:hover {
+  color: #fff2cd;
 }

@@ -107,31 +107,30 @@ const ResizableImage = Image.extend({
   },
 })
 
-// === NETTOYAGE ET RE-UPLOAD DES IMAGES BLOB ===
-const cleanAndReuploadImages = async (html, token, editor) => {
+// === NETTOYAGE DES IMAGES BLOB ===
+const cleanAndReuploadImages = async (html) => {
   if (!html) return ''
-
   const parser = new DOMParser()
   const doc = parser.parseFromString(html, 'text/html')
   const allImgs = doc.querySelectorAll('img')
 
   for (const img of allImgs) {
     const src = img.getAttribute('src')
-
-    // Si c'est une URL blob, la supprimer ou la remplacer
     if (src && src.startsWith('blob:')) {
       console.warn('Image blob détectée et supprimée:', src)
-      img.remove() // Supprimer l'image blob car elle est invalide
+      img.remove()
     }
   }
-
   return doc.body.innerHTML
 }
 
-// === COMPOSANT ÉDITEUR ===
-const RichTextEditor = ({ content, onUpdate, label, isEditMode = false }) => {
+// === COMPOSANT ÉDITEUR RICHE (Tiptap) ===
+const RichTextEditor = ({ content, onUpdate, label }) => {
   const { token } = useAuth()
+  const { textDirection, selectedLanguage } = useLanguage()
   const [isInitialized, setIsInitialized] = useState(false)
+
+  const currentLangCode = selectedLanguage === 'adlam' ? 'ff-Adlm' : selectedLanguage
 
   const editor = useEditor({
     extensions: [
@@ -142,7 +141,7 @@ const RichTextEditor = ({ content, onUpdate, label, isEditMode = false }) => {
         HTMLAttributes: { class: 'max-w-full h-auto rounded-lg' },
       }),
     ],
-    content: '', // Vide au départ
+    content: '',
     onUpdate: ({ editor }) => {
       const html = editor.getHTML()
       onUpdate(html)
@@ -155,12 +154,10 @@ const RichTextEditor = ({ content, onUpdate, label, isEditMode = false }) => {
     },
   })
 
-  // === INITIALISATION DU CONTENU (UNE SEULE FOIS) ===
   useEffect(() => {
     if (editor && !isInitialized) {
       if (content) {
-        // Nettoyer le contenu avant de le charger
-        cleanAndReuploadImages(content, token, editor).then((cleanHtml) => {
+        cleanAndReuploadImages(content).then((cleanHtml) => {
           editor.commands.setContent(cleanHtml, false)
           setIsInitialized(true)
         })
@@ -168,7 +165,7 @@ const RichTextEditor = ({ content, onUpdate, label, isEditMode = false }) => {
         setIsInitialized(true)
       }
     }
-  }, [editor, content, token, isInitialized])
+  }, [editor, content, isInitialized])
 
   const addImageFromPC = async () => {
     const input = document.createElement('input')
@@ -179,11 +176,9 @@ const RichTextEditor = ({ content, onUpdate, label, isEditMode = false }) => {
       if (!file || !editor) return
 
       try {
-        // Upload immédiat sans passer par blob
         const formData = new FormData()
         formData.append('image', file)
 
-        // Afficher un loader
         const loadingImg =
           'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA1MCA1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyNSIgY3k9IjI1IiByPSIyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMmMzMTU5IiBzdHJva2Utd2lkdGg9IjQiPjxhbmltYXRlIGF0dHJpYnV0ZU5hbWU9InN0cm9rZS1kYXNoYXJyYXkiIGR1cj0iMnMiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIiB2YWx1ZXM9IjAgMTI1OzEyNSAwIi8+PC9jaXJjbGU+PC9zdmc+'
         editor.chain().focus().setImage({ src: loadingImg }).run()
@@ -202,14 +197,11 @@ const RichTextEditor = ({ content, onUpdate, label, isEditMode = false }) => {
           throw new Error(result.message || "Erreur d'upload")
 
         const finalUrl = result.imageUrl
-
-        // Remplacer le loader par l'image finale
         const currentContent = editor.getHTML()
         const updatedContent = currentContent.replace(loadingImg, finalUrl)
         editor.commands.setContent(updatedContent, false)
       } catch (error) {
         alert('Erreur upload : ' + error.message)
-        // Supprimer l'image en cas d'erreur
         editor.chain().focus().deleteSelection().run()
       }
     }
@@ -219,43 +211,47 @@ const RichTextEditor = ({ content, onUpdate, label, isEditMode = false }) => {
   if (!editor) return null
 
   return (
-    <div>
-      <label className='block text-sm font-medium text-gray-700 mb-1'>
+    <div style={{ direction: textDirection }} lang={currentLangCode}>
+      <label className='block text-sm font-medium text-gray-700 mb-1 font-adlam'>
         {label}
       </label>
-      <div className='border border-gray-300 rounded-xl overflow-hidden'>
+      <div className='border border-gray-300 rounded-xl overflow-hidden bg-white'>
         <div className='bg-gray-50 p-2 border-b border-gray-300 flex gap-1 flex-wrap'>
           <button
             type='button'
             onClick={() => editor.chain().focus().toggleBold().run()}
-            className={`p-2 rounded transition ${
+            className={`p-2 rounded transition font-bold ${
               editor.isActive('bold')
                 ? 'bg-[#2c3159] text-white'
-                : 'bg-white hover:bg-gray-100'
+                : 'bg-white hover:bg-gray-100 text-gray-700'
             }`}
+            aria-label='Gras'
           >
-            <strong>B</strong>
+            B
           </button>
           <button
             type='button'
             onClick={() => editor.chain().focus().toggleItalic().run()}
-            className={`p-2 rounded transition ${
+            className={`p-2 rounded transition italic ${
               editor.isActive('italic')
                 ? 'bg-[#2c3159] text-white'
-                : 'bg-white hover:bg-gray-100'
+                : 'bg-white hover:bg-gray-100 text-gray-700'
             }`}
+            aria-label='Italique'
           >
-            <em>I</em>
+            I
           </button>
           <button
             type='button'
             onClick={addImageFromPC}
-            className='p-2 rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-1'
+            className='p-2 rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-1 text-sm font-medium transition duration-200'
           >
             📷 Image
           </button>
         </div>
-        <EditorContent editor={editor} />
+        <div dir={textDirection}>
+          <EditorContent editor={editor} />
+        </div>
       </div>
     </div>
   )
@@ -264,9 +260,10 @@ const RichTextEditor = ({ content, onUpdate, label, isEditMode = false }) => {
 // === FORMULAIRE PRINCIPAL (CRÉATION + MODIFICATION) ===
 const CreateArticleForm = ({ article }) => {
   const { token } = useAuth()
-  const { translations, selectedLanguage } = useLanguage()
+  const { textDirection, selectedLanguage } = useLanguage()
 
   const isEditMode = !!article
+  const currentLangCode = selectedLanguage === 'adlam' ? 'ff-Adlm' : selectedLanguage
 
   const [titleAdlam, setTitleAdlam] = useState(article?.title_adlam || '')
   const [titleFrench, setTitleFrench] = useState(article?.title_french || '')
@@ -343,7 +340,6 @@ const CreateArticleForm = ({ article }) => {
       )
       setMessageType('success')
 
-      // Recharger la page après 1.5 secondes pour afficher les modifications
       if (isEditMode) {
         setTimeout(() => {
           window.location.reload()
@@ -358,7 +354,7 @@ const CreateArticleForm = ({ article }) => {
   }
 
   return (
-    <div className='w-full'>
+    <div className='w-full' style={{ direction: textDirection }} lang={currentLangCode}>
       <form onSubmit={handleSubmit} className='space-y-6'>
         {message && (
           <div
@@ -373,8 +369,8 @@ const CreateArticleForm = ({ article }) => {
         )}
 
         <div>
-          <label className='block text-sm font-medium text-gray-700 mb-1'>
-            𞤅𞤫𞤪𞤭𞤲𞤣𞤫 𞤆𞤵𞤢𞤤𞤪
+          <label className='block text-sm font-medium text-gray-700 mb-1 font-adlam'>
+            𞤅𞤫𞤪𞤭𞤲𞤣𞤫 𞤆𞤵𞤢𞤤𞤪 (Titre Adlam)
           </label>
           <input
             type='text'
@@ -382,12 +378,13 @@ const CreateArticleForm = ({ article }) => {
             onChange={(e) => setTitleAdlam(e.target.value)}
             required
             className='w-full p-3 rounded-xl border border-gray-300 focus:ring focus:ring-[#2c3159] focus:ring-opacity-50'
+            dir={textDirection}
           />
         </div>
 
         <div>
           <label className='block text-sm font-medium text-gray-700 mb-1'>
-            𞤅𞤫𞤪𞤭𞤲𞤣𞤫 𞤊𞤢𞤪𞤢𞤲𞤧𞤭
+            𞤅𞤫𞤪𞤭𞤲𞤣𞤫 𞤊𞤢𞤪𞤢𞤲𞤧𞤭 (Titre Français)
           </label>
           <input
             type='text'
@@ -395,12 +392,13 @@ const CreateArticleForm = ({ article }) => {
             onChange={(e) => setTitleFrench(e.target.value)}
             required
             className='w-full p-3 rounded-xl border border-gray-300 focus:ring focus:ring-[#2c3159] focus:ring-opacity-50'
+            dir='ltr'
           />
         </div>
 
         <div>
           <label className='block text-sm font-medium text-gray-700 mb-1'>
-            𞤅𞤫𞤪𞤭𞤲𞤣𞤫 𞤉𞤲𞤺𞤫𞤤𞤫
+            𞤅𞤫𞤪𞤭𞤲𞤣𞤫 𞤉𞤲𞤺𞤫𞤤𞤫 (Titre Anglais)
           </label>
           <input
             type='text'
@@ -408,38 +406,36 @@ const CreateArticleForm = ({ article }) => {
             onChange={(e) => setTitleEnglish(e.target.value)}
             required
             className='w-full p-3 rounded-xl border border-gray-300 focus:ring focus:ring-[#2c3159] focus:ring-opacity-50'
+            dir='ltr'
           />
         </div>
 
         <RichTextEditor
           content={contentAdlam}
           onUpdate={setContentAdlam}
-          label='𞤏𞤢𞤯𞤮𞤪𞤢𞤤 𞤆𞤵𞤤𞤢𞤪'
-          isEditMode={isEditMode}
+          label='𞤏𞤢𞤯𞤮𞤪𞤢𞤤 𞤆𞤵𞤤𞤢𞤪 (Contenu Adlam)'
         />
         <RichTextEditor
           content={contentFrench}
           onUpdate={setContentFrench}
-          label='𞤏𞤢𞤯𞤮𞤪𞤢𞤤 𞤊𞤢𞤪𞤢𞤲𞤧𞤭'
-          isEditMode={isEditMode}
+          label='𞤏𞤢𞤯𞤮𞤪𞤢𞤤 𞤊𞤢𞤪𞤢𞤲𞤧𞤭 (Contenu Français)'
         />
         <RichTextEditor
           content={contentEnglish}
           onUpdate={setContentEnglish}
-          label='𞤏𞤢𞤯𞤮𞤪𞤢𞤤 𞤉𞤲𞤺𞤫𞤤𞤫'
-          isEditMode={isEditMode}
+          label='𞤏𞤢𞤯𞤮𞤪𞤢𞤤 𞤉𞤲𞤺𞤫𞤤𞤫 (Contenu Anglais)'
         />
 
         <div>
-          <label className='block text-sm font-medium text-gray-700 mb-1'>
-            𞤐𞤢𞤼𞤢𞤤 𞤦𞤵𞥅𞤥𞤵𞤲𞥋𞤺𞤢𞤤
+          <label className='block text-sm font-medium text-gray-700 mb-1 font-adlam'>
+            𞤐𞤢𞤼𞤢𞤤 𞤦𞤵𞥅𞤥𞤵𞤲𞥋𞤺𞤢𞤤 (Image de couverture - Cloud Foundry)
           </label>
           {article?.coverImageUrl && !coverImage && (
             <div className='mb-2'>
               <img
                 src={article.coverImageUrl}
                 alt='Cover actuelle'
-                className='w-32 h-32 object-cover rounded-lg'
+                className='w-32 h-32 object-cover rounded-lg shadow-sm'
               />
             </div>
           )}
@@ -447,7 +443,7 @@ const CreateArticleForm = ({ article }) => {
             type='file'
             accept='image/*'
             onChange={(e) => setCoverImage(e.target.files[0])}
-            className='w-full p-3 rounded-xl border border-gray-300 focus:ring focus:ring-[#2c3159] focus:ring-opacity-50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#2c3159] file:text-white hover:file:bg-[#1a1d35]'
+            className='w-full p-3 rounded-xl border border-gray-300 focus:ring focus:ring-[#2c3159] focus:ring-opacity-50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#2c3159] file:text-white hover:file:bg-[#1a1d35] cursor-pointer'
           />
         </div>
 
@@ -455,13 +451,13 @@ const CreateArticleForm = ({ article }) => {
           <button
             type='submit'
             disabled={isLoading}
-            className='bg-[#2c3159] text-white font-bold py-3 px-6 rounded-full shadow-lg hover:bg-opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed'
+            className='bg-[#2c3159] text-white font-bold py-3 px-6 rounded-full shadow-lg hover:bg-[#1a1e3a] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-adlam cursor-pointer'
           >
             {isLoading
               ? 'Sauvegarde en cours...'
               : isEditMode
-              ? '𞤅𞤭𞤲𞤷𞤵 𞤯𞤮𞤲𞤳𞤮𞤤'
-              : '𞤅𞤭𞤲𞤷𞤵 𞤳𞤵𞤯𞤮𞤤'}
+              ? '𞤅𞤭𞤲𞤷𞤵 𞤯𞤮𞤲𞤳𞤮𞤤 (Mettre à jour)'
+              : '𞤅𞤭𞤲𞤷𞤵 𞤳𞤵𞤯𞤮𞤤 (Créer)'}
           </button>
         </div>
       </form>

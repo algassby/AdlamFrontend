@@ -1,20 +1,34 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-// IMPORTANT: Assurez-vous que ce chemin est correct pour votre application
 import { useAuth } from '../src/providers/AuthProvider'
 import { useLanguage } from '../src/providers/LanguageProvider'
 
 const CommentForm = ({ articleId, onCommentAdded }) => {
-  // Utilisation de votre hook d'authentification
-  const { isAuthenticated, token } = useAuth() // Récupération de la direction du texte et des traductions
-
+  const { isAuthenticated, token } = useAuth()
   const { textDirection, translations, selectedLanguage } = useLanguage()
-  const currentLang = translations[selectedLanguage].commentForm // Accès direct aux traductions du formulaire
+  const currentLang = translations[selectedLanguage]?.commentForm || {
+    errorEmpty: 'Le commentaire ne peut pas être vide.',
+    errorAuthMissing: 'Vous devez être connecté.',
+    errorApi: "Erreur lors de l'envoi du commentaire.",
+    errorConnection: 'Erreur de connexion au serveur.',
+    loginRequiredTitle: 'Connexion requise',
+    loginRequiredMessage: 'Veuillez vous',
+    loginLinkText: 'connecter',
+    loginRequiredMessageEnd: 'pour laisser un commentaire.',
+    label: 'Laisser un commentaire',
+    placeholder: 'Écrivez votre commentaire ici...',
+    success: 'Commentaire ajouté avec succès !',
+    buttonLoading: 'Envoi en cours...',
+    buttonSubmit: 'Publier le commentaire',
+  }
 
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
+
+  const currentLangCode =
+    selectedLanguage === 'adlam' ? 'ff-Adlm' : selectedLanguage
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -23,13 +37,13 @@ const CommentForm = ({ articleId, onCommentAdded }) => {
     setLoading(true)
 
     if (!content.trim()) {
-      setError(currentLang.errorEmpty) // Utilisation de la traduction
+      setError(currentLang.errorEmpty)
       setLoading(false)
       return
-    } // Vérification de sécurité supplémentaire
+    }
 
     if (!token) {
-      setError(currentLang.errorAuthMissing) // Utilisation de la traduction
+      setError(currentLang.errorAuthMissing)
       setLoading(false)
       return
     }
@@ -50,58 +64,57 @@ const CommentForm = ({ articleId, onCommentAdded }) => {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(
-          data.error || currentLang.errorApi // Utilisation de la traduction
-        )
-      } // Succès
+        throw new Error(data.error || currentLang.errorApi)
+      }
 
       setSuccess(true)
-      setContent('') // Réinitialiser le champ après succès // Mettre à jour la liste dans ArticlePage
-
-      onCommentAdded(data.comment)
+      setContent('')
+      if (onCommentAdded) {
+        onCommentAdded(data.comment)
+      }
     } catch (err) {
       console.error('Erreur API:', err)
-      setError(err.message || currentLang.errorConnection) // Utilisation de la traduction
+      setError(err.message || currentLang.errorConnection)
     } finally {
       setLoading(false)
     }
-  } // Si l'utilisateur n'est PAS connecté
+  }
 
   if (!isAuthenticated) {
     return (
       <div
-        className='bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-8'
+        className='bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-8 rounded-r-lg'
         role='alert'
         style={{ direction: textDirection }}
+        lang={currentLangCode}
       >
-        <p className='font-bold'>{currentLang.loginRequiredTitle}</p>{' '}
+        <p className='font-bold mb-1'>{currentLang.loginRequiredTitle}</p>
         <p>
           {currentLang.loginRequiredMessage}{' '}
-          <Link to='/login' className='font-semibold underline'>
-            {currentLang.loginLinkText}{' '}
+          <Link to='/login' className='font-semibold underline hover:text-yellow-900'>
+            {currentLang.loginLinkText}
           </Link>{' '}
-          {currentLang.loginRequiredMessageEnd}{' '}
-        </p>{' '}
+          {currentLang.loginRequiredMessageEnd}
+        </p>
       </div>
     )
-  } // Affichage du formulaire de commentaire pour les utilisateurs connectés
+  }
 
   return (
     <form
       onSubmit={handleSubmit}
       className='mb-12 p-6 bg-gray-50 rounded-lg shadow-inner'
       style={{ direction: textDirection }}
+      lang={currentLangCode}
     >
-      {' '}
       <div className='mb-4'>
-        {' '}
         <label
           htmlFor='comment-content'
           className='block text-lg font-medium text-gray-700 mb-2'
           style={{ textAlign: textDirection === 'rtl' ? 'right' : 'left' }}
         >
-          {currentLang.label}{' '}
-        </label>{' '}
+          {currentLang.label}
+        </label>
         <textarea
           id='comment-content'
           rows='4'
@@ -112,32 +125,34 @@ const CommentForm = ({ articleId, onCommentAdded }) => {
           disabled={loading}
           dir={textDirection}
           style={{ textAlign: textDirection === 'rtl' ? 'right' : 'left' }}
-        />{' '}
+        />
       </div>
-      {/* Messages d'état */}{' '}
+
       {error && (
         <p
           className='text-red-500 mb-4 font-medium'
           style={{ textAlign: textDirection === 'rtl' ? 'right' : 'left' }}
         >
-          Erreur: {error}{' '}
+          Erreur : {error}
         </p>
-      )}{' '}
+      )}
+
       {success && (
         <p
           className='text-green-600 mb-4 font-medium'
           style={{ textAlign: textDirection === 'rtl' ? 'right' : 'left' }}
         >
-          {currentLang.success}{' '}
+          {currentLang.success}
         </p>
-      )}{' '}
+      )}
+
       <button
         type='submit'
-        className='bg-[#2c3159] text-white font-bold py-2 px-6 rounded-full shadow-md hover:bg-indigo-700 transition duration-300 disabled:opacity-50'
+        className='bg-[#2c3159] text-white font-bold py-2 px-6 rounded-full shadow-md hover:bg-[#1a1e3a] transition duration-300 disabled:opacity-50'
         disabled={loading}
       >
-        {loading ? currentLang.buttonLoading : currentLang.buttonSubmit}{' '}
-      </button>{' '}
+        {loading ? currentLang.buttonLoading : currentLang.buttonSubmit}
+      </button>
     </form>
   )
 }

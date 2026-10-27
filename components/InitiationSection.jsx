@@ -1,25 +1,36 @@
 import React from 'react'
 import { useLanguage } from '../src/providers/LanguageProvider'
-import { MessageCircle, Calendar, CalendarCheck, Grid } from 'lucide-react'
+import { Calendar, CalendarCheck, Grid } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 const InitiationSection = () => {
   const { translations, selectedLanguage, textDirection } = useLanguage()
-  const currentLang = translations[selectedLanguage]
-  const initiationData = currentLang.initiation
+  const currentLang = translations[selectedLanguage] || {}
+  const initiationData = currentLang.initiation || {
+    title: "Initiation à l'Adlam",
+    description: "Apprenez les bases de l'écriture adlam et de la culture peule.",
+    button: "Commencer l'initiation",
+    tiles: {
+      1: { title: "Calendrier" },
+      2: { title: "Semaine" },
+      3: { title: "Nombres et Alphabet" },
+    },
+  }
+
+  const currentLangCode = selectedLanguage === 'adlam' ? 'ff-Adlm' : selectedLanguage
 
   // Les données pour les blocs d'initiation avec les composants d'icônes de lucide-react
   const initiationItems = [
     {
-      title: initiationData.tiles[1].title,
+      title: initiationData.tiles?.[1]?.title || 'Élément 1',
       icon: <Calendar size={64} color='#2c3159' strokeWidth={1.5} />,
     },
     {
-      title: initiationData.tiles[2].title,
+      title: initiationData.tiles?.[2]?.title || 'Élément 2',
       icon: <CalendarCheck size={64} color='#2c3159' strokeWidth={1.5} />,
     },
     {
-      title: initiationData.tiles[3].title,
+      title: initiationData.tiles?.[3]?.title || 'Élément 3',
       icon: <Grid size={64} color='#2c3159' strokeWidth={1.5} />,
     },
   ]
@@ -28,6 +39,7 @@ const InitiationSection = () => {
     <section
       className='bg-[#2c3159] py-16 font-sans text-white text-center'
       style={{ direction: textDirection }}
+      lang={currentLangCode}
     >
       <div className='container mx-auto max-w-7xl px-4'>
         {/* Titre et description de la section centrés */}
@@ -70,8 +82,8 @@ const InitiationSection = () => {
         </div>
 
         {/* Bouton "Voir plus" */}
-        <Link to='/initiation'>
-          <button className='bg-[#fff2cd] text-[#2c3159] font-bold py-3 px-8 rounded-full shadow-lg hover:bg-yellow-500 transition duration-300 font-adlam'>
+        <Link to='/initiation' aria-label={initiationData.button}>
+          <button className='bg-[#fff2cd] text-[#2c3159] font-bold py-3 px-8 rounded-full shadow-lg hover:bg-yellow-500 transition duration-300 font-adlam cursor-pointer'>
             <span>{initiationData.button}</span>
           </button>
         </Link>

@@ -1,40 +1,36 @@
 import React, { useState, createContext, useContext, useEffect } from 'react'
 
-// Crée le contexte d'authentification
-const AuthContext = createContext()
+const AuthContext = createContext(null)
 
-// Hook personnalisé pour utiliser le contexte d'authentification
 export const useAuth = () => {
-  return useContext(AuthContext)
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error('useAuth doit être utilisé au sein d’un AuthProvider')
+  }
+  return context
 }
 
-// URL de votre API de connexion
-// const LOGIN_API_URL = 'http://localhost:5000/api/auth/login'
 const LOGIN_API_URL =
   'https://adlambackend-production-551c.up.railway.app/api/auth/login'
 
-// Composant fournisseur du contexte d'authentification
 export const AuthProvider = ({ children }) => {
-  // Initialise l'état à partir du localStorage pour la persistance
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    !!localStorage.getItem('token'), // Convertit en booléen (true si le token existe)
-  )
+  const [token, setToken] = useState(() => localStorage.getItem('token') || null)
+  const [isAuthenticated, setIsAuthenticated] = useState(!!token)
+
   const [user, setUser] = useState(() => {
     try {
       const storedUser = localStorage.getItem('user')
       return storedUser ? JSON.parse(storedUser) : null
     } catch (e) {
-      console.error(
-        'Erreur lors du parsing des données utilisateur depuis localStorage',
-        e,
-      )
+      console.error('Erreur lors du chargement des données utilisateur', e)
       return null
     }
   })
+
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [token, setToken] = useState(localStorage.getItem('token')) // Ajoute l'état du token // Met à jour le localStorage chaque fois que l'utilisateur ou le token change
 
+  // Synchronisation avec le localStorage
   useEffect(() => {
     if (user) {
       localStorage.setItem('user', JSON.stringify(user))
@@ -65,20 +61,20 @@ export const AuthProvider = ({ children }) => {
         const errData = await response.json()
         throw new Error(
           errData.message ||
-            'Échec de la connexion. Veuillez vérifier vos informations.',
+            'Échec de la connexion. Veuillez vérifier vos identifiants.',
         )
       }
 
-      const data = await response.json() // Met à jour l'état avec les nouvelles données
-      setToken(data.token) // Sauvegarde le token
-      setUser(data.user) // Sauvegarde les infos utilisateur
+      const data = await response.json()
+      setToken(data.token)
+      setUser(data.user)
       setIsAuthenticated(true)
       return true
     } catch (err) {
       setError(err.message)
       setIsAuthenticated(false)
-      setUser(null) // S'il y a une erreur, on réinitialise l'utilisateur
-      setToken(null) // Et le token
+      setUser(null)
+      setToken(null)
       localStorage.removeItem('token')
       localStorage.removeItem('user')
       return false
@@ -95,14 +91,23 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user')
   }
 
+  const updateUser = (updatedUserData) => {
+    setUser((prevUser) => {
+      const newUser = { ...prevUser, ...updatedUserData }
+      localStorage.setItem('user', JSON.stringify(newUser))
+      return newUser
+    })
+  }
+
   const value = {
     isAuthenticated,
     user,
     isLoading,
     error,
-    token, // Ajoute le token dans le contexte
+    token,
     login,
     logout,
+    updateUser,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

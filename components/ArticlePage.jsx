@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { useLanguage } from '../src/providers/LanguageProvider'
 
 import CommentForm from '../components/CommentForm'
@@ -8,7 +9,7 @@ import CommentsList from '../components/CommentsList'
 const ArticlePage = () => {
   const { id } = useParams()
   const { translations, selectedLanguage, textDirection } = useLanguage()
-  const pageLang = translations[selectedLanguage].articlePage || {}
+  const pageLang = translations[selectedLanguage]?.articlePage || {}
 
   const [article, setArticle] = useState(null)
   const [comments, setComments] = useState([])
@@ -90,7 +91,7 @@ const ArticlePage = () => {
   const getTitle = () => {
     switch (selectedLanguage) {
       case 'adlam':
-        return article.title_adlam
+        return article.title_adlam || article.title_french
       case 'fr':
         return article.title_french
       case 'en':
@@ -103,7 +104,7 @@ const ArticlePage = () => {
   const getContent = () => {
     switch (selectedLanguage) {
       case 'adlam':
-        return article.content_adlam
+        return article.content_adlam || article.content_french
       case 'fr':
         return article.content_french
       case 'en':
@@ -112,6 +113,21 @@ const ArticlePage = () => {
         return article.content_french
     }
   }
+
+  // Nettoyage du HTML pour extraire la meta-description (160 caractères max)
+  const stripHtml = (html) => {
+    if (!html) return ''
+    return html.replace(/<[^>]*>?/gm, '').trim()
+  }
+
+  const articleTitle = getTitle() || 'Akweeyo'
+  const articleContent = getContent() || ''
+  const cleanDescription =
+    stripHtml(articleContent).slice(0, 160) || 'Article sur Akweeyo'
+  const currentLangCode =
+    selectedLanguage === 'adlam' ? 'ff-Adlm' : selectedLanguage
+  const canonicalUrl = `https://akweeyo.com/articles/${id}`
+  const imageUrl = article.coverImageUrl || 'https://akweeyo.com/placeholder.jpg'
 
   const formattedDate = new Date(article.createdAt).toLocaleDateString(
     getLocale(selectedLanguage),
@@ -124,27 +140,84 @@ const ArticlePage = () => {
 
   return (
     <div className='font-sans pt-16' style={{ direction: textDirection }}>
+      {/* --- INJECTION SEO DYNAMIQUE DANS LE <HEAD> --- */}
+      <Helmet>
+        {/* Langue de la page */}
+        <html lang={currentLangCode} />
+
+        {/* Titre et description */}
+        <title>{articleTitle} | Akweeyo</title>
+        <meta name='description' content={cleanDescription} />
+
+        {/* Méta-étiquettes d'indexation */}
+        <link rel='canonical' href={canonicalUrl} />
+
+        {/* Balises hreflang pour le référencement multilingue */}
+        <link rel='alternate' hrefLang='ff-Adlm' href={canonicalUrl} />
+        <link rel='alternate' hrefLang='fr' href={canonicalUrl} />
+        <link rel='alternate' hrefLang='en' href={canonicalUrl} />
+        <link rel='alternate' hrefLang='x-default' href={canonicalUrl} />
+
+        {/* Open Graph (WhatsApp, Facebook, LinkedIn, Telegram) */}
+        <meta property='og:title' content={articleTitle} />
+        <meta property='og:description' content={cleanDescription} />
+        <meta property='og:image' content={imageUrl} />
+        <meta property='og:url' content={canonicalUrl} />
+        <meta property='og:type' content='article' />
+        <meta property='og:locale' content={getLocale(selectedLanguage)} />
+
+        {/* Données structurées JSON-LD (Schema.org) pour Google Images & Articles */}
+        <script type='application/ld+json'>
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'NewsArticle',
+            headline: articleTitle,
+            description: cleanDescription,
+            image: [imageUrl],
+            datePublished: article.createdAt,
+            dateModified: article.updatedAt || article.createdAt,
+            inLanguage: currentLangCode,
+            author: {
+              '@type': 'Person',
+              name: article.author?.name || 'Akweeyo',
+            },
+            publisher: {
+              '@type': 'Organization',
+              name: 'Akweeyo',
+              logo: {
+                '@type': 'ImageObject',
+                url: 'https://akweeyo.com/logo.png',
+              },
+            },
+            mainEntityOfPage: {
+              '@type': 'WebPage',
+              '@id': canonicalUrl,
+            },
+          })}
+        </script>
+      </Helmet>
+
       {/* Section Hero avec l'image de couverture */}
       <div
         className='relative h-96 w-full bg-cover bg-center'
-        style={{ backgroundImage: `url(${article.coverImageUrl})` }}
+        style={{ backgroundImage: `url(${imageUrl})` }}
       >
         <div className='absolute inset-0 bg-black opacity-50'></div>
         <div className='relative z-10 flex flex-col items-center justify-center h-full px-4 text-center text-white'>
-          <h1 className='text-3xl md:text-5xl font-bold mb-4'>{getTitle()}</h1>
+          <h1 className='text-3xl md:text-5xl font-bold mb-4'>{articleTitle}</h1>
           <p className='text-xl md:text-2xl font-semibold'>
-            {t('by', 'Par')} {article.author.name} {t('on', 'le')}{' '}
+            {t('by', 'Par')} {article.author?.name || 'Akweeyo'} {t('on', 'le')}{' '}
             {formattedDate}
           </p>
         </div>
       </div>
 
-      {/* Contenu de l'article – PROSE ISOLÉ */}
+      {/* Contenu de l'article */}
       <div className='container mx-auto px-4 py-12 max-w-4xl'>
         <article
           className='article-content'
           style={{ direction: textDirection }}
-          dangerouslySetInnerHTML={{ __html: getContent() }}
+          dangerouslySetInnerHTML={{ __html: articleContent }}
         />
 
         {/* --- Section des Commentaires --- */}

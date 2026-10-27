@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { useLanguage } from '../src/providers/LanguageProvider'
+import { Link } from 'react-router-dom'
 
-// Composant de la page d'inscription
 const RegisterPage = () => {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -11,34 +12,33 @@ const RegisterPage = () => {
   const [isSuccess, setIsSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  // Utilisation du hook de langue pour les traductions
-  const { translations, selectedLanguage } = useLanguage()
-  const currentLang = translations[selectedLanguage]
-  const {
-    signUp,
-    nameLabel,
-    emailLabel,
-    passwordLabel,
-    confirmPasswordLabel,
-    signUpButton,
-    hasAccount,
-    signInHere,
-    passwordMismatchError,
-    registrationError,
-    loadingButton,
-  } = currentLang.auth.register
+  const { translations, selectedLanguage, textDirection } = useLanguage()
+  const currentLang = translations[selectedLanguage] || {}
+  const authRegisterLang = currentLang.auth?.register || {
+    signUp: "Inscription",
+    nameLabel: "Nom complet",
+    emailLabel: "Adresse email",
+    passwordLabel: "Mot de passe",
+    confirmPasswordLabel: "Confirmer le mot de passe",
+    signUpButton: "S'inscrire",
+    hasAccount: "Vous avez déjà un compte ?",
+    signInHere: "Se connecter",
+    passwordMismatchError: "Les mots de passe ne correspondent pas.",
+    registrationError: "Erreur lors de l'inscription.",
+    loadingButton: "Inscription en cours...",
+  }
 
-  /**
-   * Gère la soumission du formulaire d'inscription.
-   * @param {object} e - L'événement de soumission du formulaire.
-   */
+  const currentLangCode = selectedLanguage === 'adlam' ? 'ff-Adlm' : selectedLanguage
+  const pageTitle = authRegisterLang.signUp || "Inscription"
+  const pageDescription = "Créez votre compte sur Akweeyo pour accéder à nos contenus en écriture adlam et pular."
+  const canonicalUrl = 'https://akweeyo.com/register'
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    // Utilise la clé de traduction pour l'erreur de mot de passe
     if (password !== confirmPassword) {
       setMessage({
         type: 'error',
-        text: passwordMismatchError,
+        text: authRegisterLang.passwordMismatchError,
       })
       return
     }
@@ -47,7 +47,6 @@ const RegisterPage = () => {
     setMessage(null)
 
     try {
-      // Simulation d'une requête API pour l'inscription
       const response = await fetch(
         'https://adlambackend-production-551c.up.railway.app/api/auth/register',
         {
@@ -62,13 +61,12 @@ const RegisterPage = () => {
       const data = await response.json()
 
       if (response.ok) {
-        setMessage({ type: 'success', text: data.message })
+        setMessage({ type: 'success', text: data.message || 'Inscription réussie !' })
         setIsSuccess(true)
       } else {
-        // Utilise la clé de traduction pour l'erreur de connexion
         setMessage({
           type: 'error',
-          text: data.message || registrationError,
+          text: data.message || authRegisterLang.registrationError,
         })
       }
     } catch (error) {
@@ -80,90 +78,121 @@ const RegisterPage = () => {
   }
 
   return (
-    <div className='flex flex-col items-center justify-center p-8 bg-gray-50 min-h-screen'>
-      <div className='bg-white p-8 rounded-lg shadow-xl w-full max-w-lg'>
-        <h2 className='text-3xl font-bold text-center mb-6 text-gray-800'>
-          {signUp}
-        </h2>
-        <form onSubmit={handleSubmit}>
-          {[
-            {
-              id: 'name',
-              type: 'text',
-              label: nameLabel,
-              value: name,
-              onChange: setName,
-            },
-            {
-              id: 'email',
-              type: 'email',
-              label: emailLabel,
-              value: email,
-              onChange: setEmail,
-            },
-            {
-              id: 'password',
-              type: 'password',
-              label: passwordLabel,
-              value: password,
-              onChange: setPassword,
-            },
-            {
-              id: 'confirmPassword',
-              type: 'password',
-              label: confirmPasswordLabel,
-              value: confirmPassword,
-              onChange: setConfirmPassword,
-            },
-          ].map((field) => (
-            <div className='mb-4' key={field.id}>
-              <label
-                className='block text-gray-700 text-sm font-bold mb-2'
-                htmlFor={field.id}
+    <>
+      {/* --- INJECTION SEO & MÉTADONNÉES --- */}
+      <Helmet>
+        <html lang={currentLangCode} />
+        <title>{pageTitle} | Akweeyo</title>
+        <meta name='description' content={pageDescription} />
+        <link rel='canonical' href={canonicalUrl} />
+
+        <meta property='og:title' content={pageTitle} />
+        <meta property='og:description' content={pageDescription} />
+        <meta property='og:url' content={canonicalUrl} />
+        <meta property='og:type' content='website' />
+      </Helmet>
+
+      {/* --- CONTENU DE LA PAGE --- */}
+      <div
+        className='flex flex-col items-center justify-center p-8 bg-gray-50 min-h-screen pt-40 md:pt-32 font-sans'
+        style={{ direction: textDirection }}
+        lang={currentLangCode}
+      >
+        <div className='bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100'>
+          <h2 className='text-3xl font-bold text-center mb-6 text-[#2c3159] font-adlam'>
+            {authRegisterLang.signUp}
+          </h2>
+
+          <form onSubmit={handleSubmit}>
+            {[
+              {
+                id: 'name',
+                type: 'text',
+                label: authRegisterLang.nameLabel,
+                value: name,
+                onChange: setName,
+                dir: textDirection,
+              },
+              {
+                id: 'email',
+                type: 'email',
+                label: authRegisterLang.emailLabel,
+                value: email,
+                onChange: setEmail,
+                dir: 'ltr',
+              },
+              {
+                id: 'password',
+                type: 'password',
+                label: authRegisterLang.passwordLabel,
+                value: password,
+                onChange: setPassword,
+                dir: 'ltr',
+              },
+              {
+                id: 'confirmPassword',
+                type: 'password',
+                label: authRegisterLang.confirmPasswordLabel,
+                value: confirmPassword,
+                onChange: setConfirmPassword,
+                dir: 'ltr',
+              },
+            ].map((field) => (
+              <div className='mb-4' key={field.id}>
+                <label
+                  className='block text-gray-700 text-sm font-bold mb-2 font-adlam'
+                  htmlFor={field.id}
+                >
+                  {field.label}
+                </label>
+                <input
+                  className='shadow-sm appearance-none border border-gray-300 rounded-xl w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-[#2c3159] focus:border-transparent transition-all duration-200'
+                  id={field.id}
+                  type={field.type}
+                  placeholder={field.label}
+                  value={field.value}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  dir={field.dir}
+                  required
+                />
+              </div>
+            ))}
+
+            {message && (
+              <p
+                className={`text-sm text-center mb-4 font-medium p-3 rounded-xl ${
+                  message.type === 'success'
+                    ? 'bg-green-50 text-green-700'
+                    : 'bg-red-50 text-red-700'
+                }`}
               >
-                {field.label}
-              </label>
-              <input
-                className='shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'
-                id={field.id}
-                type={field.type}
-                placeholder={field.label}
-                value={field.value}
-                onChange={(e) => field.onChange(e.target.value)}
-                required
-              />
+                {message.text}
+              </p>
+            )}
+
+            <div className='flex items-center justify-center mt-6'>
+              <button
+                className='bg-[#2c3159] hover:bg-[#1a1e3a] text-white font-bold py-3 px-4 rounded-full focus:outline-none focus:shadow-outline w-full disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-adlam cursor-pointer shadow-md'
+                type='submit'
+                disabled={isLoading || isSuccess}
+              >
+                {isLoading ? authRegisterLang.loadingButton : authRegisterLang.signUpButton}
+              </button>
             </div>
-          ))}
+          </form>
 
-          {message && (
-            <p
-              className={`text-sm text-center mb-4 ${
-                message.type === 'success' ? 'text-green-500' : 'text-red-500'
-              }`}
+          <p className='mt-6 text-center text-gray-600 text-sm font-sans'>
+            {authRegisterLang.hasAccount}{' '}
+            <Link
+              to='/login'
+              className='text-[#2c3159] hover:underline font-bold font-adlam ml-1'
             >
-              {message.text}
-            </p>
-          )}
-
-          <div className='flex items-center justify-center'>
-            <button
-              className='bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline w-full disabled:opacity-50 disabled:cursor-not-allowed'
-              type='submit'
-              disabled={isLoading || isSuccess}
-            >
-              {/* Utilise la clé de traduction pour le texte du bouton */}
-              {isLoading ? loadingButton : signUpButton}
-            </button>
-          </div>
-        </form>
-        <p className='mt-4 text-center text-gray-600'>
-          {hasAccount}{' '}
-          <a href='/login' className='text-blue-600 hover:underline font-bold'>
-            {signInHere}
-          </a>
-        </p>
+              {authRegisterLang.signInHere}
+            </Link>
+          </p>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 

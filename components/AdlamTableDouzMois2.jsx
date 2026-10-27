@@ -1,7 +1,11 @@
 import React from 'react'
+import { useLanguage } from '../src/providers/LanguageProvider'
 
 const AdlamTableDouzMois = () => {
-  // Les données du tableau du haut
+  const { selectedLanguage, textDirection } = useLanguage()
+  const currentLangCode = selectedLanguage === 'adlam' ? 'ff-Adlm' : selectedLanguage
+
+  // Les données du tableau des douze mois en adlam
   const header = '𞤂𞤫𞤦𞥆𞤭 𞤤𞤫𞥅𞤤𞤫𞤴𞤢𞤲𞤳𞤮𞥅𞤶𞤭 𞤯𞤭𞤲'
   const data = [
     [
@@ -23,25 +27,29 @@ const AdlamTableDouzMois = () => {
   ]
 
   return (
-    <div className='bg-white py-12 md:py-16 text-gray-800'>
-      <div className='container mx-auto px-4 max-w-8xl'>
+    <div
+      className='bg-white py-12 md:py-16 text-gray-800 font-sans'
+      style={{ direction: textDirection }}
+      lang={currentLangCode}
+    >
+      <div className='container mx-auto px-4 max-w-6xl'>
         {/* Titre */}
-        <h3 className='text-xl md:text-2xl font-extrabold mb-8 font-adlam text-center text-gray-700'>
+        <h3 className='text-xl md:text-2xl font-extrabold mb-8 font-adlam text-center text-[#2c3159]'>
           {header}
         </h3>
 
         {/* Tableau principal */}
-        <div className='overflow-x-auto shadow-xl rounded-lg border-2 border-[#2c3e50] p-4'>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+        <div className='overflow-x-auto shadow-xl rounded-2xl border-2 border-[#2c3159] p-6 bg-white'>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
             {data.map((col, colIndex) => (
               <div
                 key={colIndex}
-                className='flex flex-col space-y-2 bg-blue-50 p-4 rounded-lg border border-[#2c3e50]'
+                className='flex flex-col space-y-3 bg-blue-50/50 p-4 rounded-xl border border-[#2c3159]/30'
               >
                 {col.map((cell, cellIndex) => (
                   <div
                     key={cellIndex}
-                    className='px-4 py-2 text-center text-xl md:text-2xl font-adlam font-semibold text-[#2c3e50]-700 border border-[#2c3e50] rounded-md bg-white'
+                    className='px-4 py-3 text-center text-xl md:text-2xl font-adlam font-semibold text-[#2c3159] border border-[#2c3159]/20 rounded-lg bg-white shadow-sm hover:bg-blue-50 transition-colors duration-200'
                   >
                     {cell}
                   </div>

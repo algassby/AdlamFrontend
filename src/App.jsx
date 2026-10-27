@@ -1,4 +1,5 @@
 import React from 'react'
+import { HelmetProvider } from 'react-helmet-async'
 import { LanguageProvider } from './providers/LanguageProvider'
 import { AuthProvider } from './providers/AuthProvider'
 import Header from '../components/Header/Header'
@@ -25,57 +26,51 @@ import AdlamTexteEtImages from '../components/AdlamTexteEtImages'
 
 function App() {
   return (
-    <BrowserRouter>
-      <LanguageProvider>
-        <AuthProvider>
-          <Header />
-          <main>
-            <Routes>
-              {/* Route pour la page d'accueil avec tous les composants actuels */}
-              <Route
-                path='/'
-                element={
-                  <>
-                    <HeroSection />
-                    <HistorySection />
-                    <InitiationSection />
-                    <CommunitySection />
-                    {/* <AdlamTexteEtImages /> */}
-                    <ArticlesSection />
-                    <ContactForm />
-                  </>
-                }
-              />
-              {/* Route pour la page d'inscription */}
-              <Route path='/register' element={<RegisterPage />} />
-              <Route path='/login' element={<ConnexionPage />} />
-              <Route path='/forgot-password' element={<ForgotPassword />} />
-              <Route
-                path='/reset-password/:token'
-                element={<ResetPassword />}
-              />
-              {/* Route pour la page de profil. Le chemin "/profile" correspond au composant UserProfile */}
-              <Route path='/profile' element={<UserProfile />} />
-              {/* Nouvelle route pour un article unique */}
-              <Route path='/articles/:id' element={<ArticlePage />} />
-              {/* La nouvelle route pour la page de tous les articles */}
-              <Route path='/all-articles' element={<AllArticlesPage />} />
-              <Route
-                path='/history-details'
-                element={<HistoryDetailPage />}
-              />{' '}
-              {/* Nouvelle route */}
-              <Route path='/community' element={<CommunityDetailPage />} />{' '}
-              {/* Ajoute la nouvelle route */}
-              <Route path='/initiation' element={<InitiationPage />} />
-              {/* Ajoute la nouvelle route */}
-              <Route path='/a-propos' element={<AboutPage />} />
-            </Routes>
-          </main>
-          <Footer />
-        </AuthProvider>
-      </LanguageProvider>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <LanguageProvider>
+          <AuthProvider>
+            <Header />
+            <main>
+              <Routes>
+                {/* Route pour la page d'accueil avec tous les composants */}
+                <Route
+                  path='/'
+                  element={
+                    <>
+                      <HeroSection />
+                      <HistorySection />
+                      <InitiationSection />
+                      <CommunitySection />
+                      <AdlamTexteEtImages />
+                      <ArticlesSection />
+                      <ContactForm />
+                    </>
+                  }
+                />
+                {/* Routes d'authentification et profil */}
+                <Route path='/register' element={<RegisterPage />} />
+                <Route path='/login' element={<ConnexionPage />} />
+                <Route path='/forgot-password' element={<ForgotPassword />} />
+                <Route path='/reset-password/:token' element={<ResetPassword />} />
+                <Route path='/profile' element={<UserProfile />} />
+
+                {/* Routes des articles */}
+                <Route path='/articles/:id' element={<ArticlePage />} />
+                <Route path='/all-articles' element={<AllArticlesPage />} />
+
+                {/* Routes dynamiques et informatives */}
+                <Route path='/history-details' element={<HistoryDetailPage />} />
+                <Route path='/community' element={<CommunityDetailPage />} />
+                <Route path='/initiation' element={<InitiationPage />} />
+                <Route path='/a-propos' element={<AboutPage />} />
+              </Routes>
+            </main>
+            <Footer />
+          </AuthProvider>
+        </LanguageProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   )
 }
 
